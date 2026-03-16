@@ -258,7 +258,7 @@ footer{margin-top:80px;border-top:1px solid var(--border);background:var(--surfa
     </div>
     <div class="search-card">
       <div class="search-card-title">Analyze a competitor</div>
-      <div class="search-card-sub">Enter any SaaS company for an instant intelligence brief.</div>
+      <div class="search-card-sub">Enter any SaaS company for an instant intelligence brief. <span id="usageCounter" style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)"></span></div>
       <label class="field-label">Competitor name</label>
       <div class="input-wrap">
         <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -362,6 +362,15 @@ async function animateLoading(){
 }
 
 async function runAnalysis(){
+  // Usage limit
+  const LIMIT = 7;
+  const used = parseInt(localStorage.getItem('merak_uses') || '0');
+  if(used >= LIMIT){
+    document.getElementById('errorBox').textContent = `You've reached the ${LIMIT} free analysis limit. Thanks for trying Merak! If you'd like more runs, feel free to reach out to me on LinkedIn:)`;
+    document.getElementById('errorBox').classList.add('active');
+    document.getElementById('heroSection').style.display = '';
+    return;
+  }
   const competitor=document.getElementById('companyInput').value.trim();
   if(!competitor){document.getElementById('companyInput').focus();return}
   const btn=document.getElementById('analyzeBtn');
@@ -408,6 +417,7 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no preamble.
     currentIntel=JSON.parse(text.replace(/```json|```/g,'').trim());
     await new Promise(r=>setTimeout(r,400));
     loading.classList.remove('active');
+    localStorage.setItem('merak_uses', String(used + 1));
     renderDashboard(currentIntel);
   }catch(err){
     loading.classList.remove('active');hero.style.display='';
@@ -661,6 +671,26 @@ Return a single JSON object:
   "objectionHandle": "how a ${myCompany} rep should confidently respond"
 }`;
 }
+
+function updateUsageCounter(){
+  const LIMIT = 7;
+  const used = parseInt(localStorage.getItem('merak_uses') || '0');
+  const remaining = LIMIT - used;
+  const el = document.getElementById('usageCounter');
+  if(el){
+    if(remaining <= 0){
+      el.textContent = 'No analyses remaining.';
+      el.style.color = 'var(--danger)';
+      document.getElementById('analyzeBtn').disabled = true;
+    } else if(remaining <= 3){
+      el.textContent = remaining + ' of ' + LIMIT + ' analyses remaining.';
+      el.style.color = 'var(--warn)';
+    } else {
+      el.textContent = remaining + ' of ' + LIMIT + ' analyses remaining.';
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded', updateUsageCounter);
 </script>
 </body>
 </html>
