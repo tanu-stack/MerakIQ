@@ -400,12 +400,12 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no preamble.
 }`;
 
   try{
-    const resp=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+getGroqKey()},body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:2400,temperature:0.2,response_format:{type:"json_object"},messages:[{role:"system",content:"You are a senior product marketing analyst. Always respond with valid JSON only."},{role:"user",content:buildAnalysisPrompt(competitor)}]})});
+    const resp=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({competitor,mode:"analysis"})});
     const data=await resp.json();
-    if(data.error){throw new Error(data.error.message||"Groq error: "+JSON.stringify(data.error))}
-    const text=data.choices?.[0]?.message?.content;
-    if(!text){throw new Error("Empty response from Groq")}
-    currentIntel=JSON.parse(text);
+    if(data.error){throw new Error(data.error)}
+    const text=data.result||'';
+    if(!text){throw new Error("Empty response from server")}
+    currentIntel=JSON.parse(text.replace(/```json|```/g,'').trim());
     await new Promise(r=>setTimeout(r,400));
     loading.classList.remove('active');
     renderDashboard(currentIntel);
@@ -576,12 +576,12 @@ Respond ONLY with a valid JSON object. No markdown, no backticks.
 {"youWin":"2 specific sentences: when ${myCompany} wins deals against ${d.name}","theyWin":"2 specific sentences: when ${d.name} wins deals against ${myCompany}","topObjection":"most common objection a ${myCompany} prospect raises after evaluating ${d.name}","objectionHandle":"a confident specific response a ${myCompany} rep should give to that objection"}`;
 
   try{
-    const resp=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+getGroqKey()},body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:800,temperature:0.2,response_format:{type:"json_object"},messages:[{role:"system",content:"You are a senior product marketing analyst. Always respond with valid JSON only."},{role:"user",content:buildBattlecardPrompt(d.name,myCompany)}]})});
+    const resp=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({competitor:d.name,myCompany,mode:"battlecard"})});
     const bcData=await resp.json();
-    if(bcData.error){throw new Error(bcData.error.message||"Groq error")}
-    const bcText=bcData.choices?.[0]?.message?.content;
-    if(!bcText){throw new Error("Empty response from Groq")}
-    const bc=JSON.parse(bcText);
+    if(bcData.error){throw new Error(bcData.error)}
+    const bcText=bcData.result||'';
+    if(!bcText){throw new Error("Empty response from server")}
+    const bc=JSON.parse(bcText.replace(/```json|```/g,'').trim());
     const myInit=myCompany.charAt(0).toUpperCase();
     const coInit=d.name.charAt(0).toUpperCase();
     bcSection.innerHTML=`
