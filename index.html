@@ -500,8 +500,8 @@ function renderDashboard(d){
     </div>
 
     <div class="g3">
-      <div class="card"><div class="card-label">Strengths</div><div class="tag-list">${d.strengths.map(s=>`<div class="tag tag-r">↑ ${s}</div>`).join('')}</div></div>
-      <div class="card"><div class="card-label">Weaknesses</div><div class="tag-list">${d.weaknesses.map(w=>`<div class="tag tag-g">↓ ${w}</div>`).join('')}</div></div>
+      <div class="card"><div class="card-label">Strengths</div><div class="tag-list">${d.strengths.map(s=>`<div class="tag tag-g">↑ ${s}</div>`).join('')}</div></div>
+      <div class="card"><div class="card-label">Weaknesses</div><div class="tag-list">${d.weaknesses.map(w=>`<div class="tag tag-r">↓ ${w}</div>`).join('')}</div></div>
       <div class="card"><div class="card-label">Core Messages</div><div class="tag-list">${d.keyMessages.map(m=>`<div class="tag tag-b">${m}</div>`).join('')}</div></div>
     </div>
 
