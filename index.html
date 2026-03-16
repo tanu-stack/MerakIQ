@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MerakIQ — by Tanu Nath</title>
+<title>Merak — by Tanu Nath</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -232,7 +232,7 @@ footer{margin-top:80px;border-top:1px solid var(--border);background:var(--surfa
         <path d="M1 13V1L9 9L17 1V13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div class="logo-text">MerakIQ <sup>BETA</sup></div>
+    <div class="logo-text">Merak <sup>BETA</sup></div>
   </div>
   <nav class="header-nav">
     <div class="nav-by">Built by <a href="https://www.linkedin.com/in/tanunath/" target="_blank">Tanu Nath</a></div>
@@ -308,17 +308,18 @@ footer{margin-top:80px;border-top:1px solid var(--border);background:var(--surfa
         <path d="M1 13V1L9 9L17 1V13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-      <div class="footer-brand">MerakIQ</div>
+      <div class="footer-brand">Merak</div>
       <div class="footer-tagline">Navigate your competitive landscape.</div>
     </div>
     <div class="footer-right">
+      <div class="footer-powered">Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a></div>
       <div class="footer-copy">© 2026 Tanu Nath</div>
     </div>
   </div>
   <hr class="footer-divider">
   <div class="footer-bottom">
-    <div class="footer-bottom-text">Built as a portfolio project · The generated analysis may not always be fully accurate.</div>
-    <div class="footer-bottom-badge"><span></span>Live · </div>
+    <div class="footer-bottom-text">Built as a portfolio project · For demonstration purposes</div>
+    <div class="footer-bottom-badge"><span></span>Live · Powered by Anthropic</div>
   </div>
 </footer>
 
@@ -363,9 +364,9 @@ async function animateLoading(){
 async function runAnalysis(){
   // Usage limit
   const LIMIT = 7;
-  const used = parseInt(localStorage.getItem('MerakIQ_uses') || '0');
+  const used = parseInt(localStorage.getItem('merak_uses') || '0');
   if(used >= LIMIT){
-    document.getElementById('errorBox').textContent = `You've reached the ${LIMIT} free analysis limit. Thanks for trying MerakIQ! If you'd like more runs, feel free to reach out to me on LinkedIn:)`;
+    document.getElementById('errorBox').textContent = `You've reached the ${LIMIT} analysis limit. Thanks for trying Merak! 🙏`;
     document.getElementById('errorBox').classList.add('active');
     document.getElementById('heroSection').style.display = '';
     return;
@@ -416,7 +417,8 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no preamble.
     currentIntel=JSON.parse(text.replace(/```json|```/g,'').trim());
     await new Promise(r=>setTimeout(r,400));
     loading.classList.remove('active');
-    localStorage.setItem('MerakIQ_uses', String(used + 1));
+    localStorage.setItem('merak_uses', String(used + 1));
+    updateUsageCounter();
     renderDashboard(currentIntel);
   }catch(err){
     loading.classList.remove('active');hero.style.display='';
@@ -626,7 +628,7 @@ function resetAll(){
 function getGroqKey(){
   const k=localStorage.getItem('groq_key');
   if(!k){
-    const input=prompt('Enter your Groq API key to use MerakIQ (stored locally in your browser only):');
+    const input=prompt('Enter your Groq API key to use Merak (stored locally in your browser only):');
     if(input){localStorage.setItem('groq_key',input.trim());return input.trim();}
     throw new Error('Groq API key is required. Get one free at console.groq.com');
   }
@@ -673,20 +675,18 @@ Return a single JSON object:
 
 function updateUsageCounter(){
   const LIMIT = 7;
-  const used = parseInt(localStorage.getItem('MerakIQ_uses') || '0');
+  const used = parseInt(localStorage.getItem('merak_uses') || '0');
   const remaining = LIMIT - used;
   const el = document.getElementById('usageCounter');
-  if(el){
-    if(remaining <= 0){
-      el.textContent = 'No analyses remaining.';
-      el.style.color = 'var(--danger)';
-      document.getElementById('analyzeBtn').disabled = true;
-    } else if(remaining <= 3){
-      el.textContent = remaining + ' of ' + LIMIT + ' analyses remaining.';
-      el.style.color = 'var(--warn)';
-    } else {
-      el.textContent = remaining + ' of ' + LIMIT + ' analyses remaining.';
-    }
+  if(!el) return;
+  if(remaining <= 0){
+    el.innerHTML = '· <span style="color:var(--danger)">0 of ' + LIMIT + ' analyses remaining</span>';
+    const btn = document.getElementById('analyzeBtn');
+    if(btn) btn.disabled = true;
+  } else if(remaining <= 3){
+    el.innerHTML = '· <span style="color:var(--warn)">' + remaining + ' of ' + LIMIT + ' analyses remaining</span>';
+  } else {
+    el.innerHTML = '· <span style="color:var(--muted)">' + remaining + ' of ' + LIMIT + ' analyses remaining</span>';
   }
 }
 document.addEventListener('DOMContentLoaded', updateUsageCounter);
