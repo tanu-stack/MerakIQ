@@ -366,7 +366,7 @@ async function runAnalysis(){
   const LIMIT = 7;
   const used = parseInt(localStorage.getItem('merak_uses') || '0');
   if(used >= LIMIT){
-    document.getElementById('errorBox').textContent = `You've reached the ${LIMIT} analysis limit. Thanks for trying Merak! 🙏`;
+    document.getElementById('errorBox').textContent = `You've reached the ${LIMIT} analysis limit. Thanks for exploring Merak! If you'd like to run more analyses, feel free to reach out to me on LinkedIn:)`;
     document.getElementById('errorBox').classList.add('active');
     document.getElementById('heroSection').style.display = '';
     return;
