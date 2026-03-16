@@ -400,12 +400,12 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no preamble.
 }`;
 
   try{
-    const resp=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({competitor:competitor,mode:"analysis"})});
+    const resp=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+getGroqKey()},body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:2400,temperature:0.2,response_format:{type:"json_object"},messages:[{role:"system",content:"You are a senior product marketing analyst. Always respond with valid JSON only."},{role:"user",content:buildAnalysisPrompt(competitor)}]})});
     const data=await resp.json();
-    if(data.error){throw new Error(data.error)}
-    const text=data.result||'';
-    if(!text){throw new Error('Empty response. Check your API keys in Netlify.')}
-    currentIntel=JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(data.error){throw new Error(data.error.message||"Groq error: "+JSON.stringify(data.error))}
+    const text=data.choices?.[0]?.message?.content;
+    if(!text){throw new Error("Empty response from Groq")}
+    currentIntel=JSON.parse(text);
     await new Promise(r=>setTimeout(r,400));
     loading.classList.remove('active');
     renderDashboard(currentIntel);
@@ -576,12 +576,12 @@ Respond ONLY with a valid JSON object. No markdown, no backticks.
 {"youWin":"2 specific sentences: when ${myCompany} wins deals against ${d.name}","theyWin":"2 specific sentences: when ${d.name} wins deals against ${myCompany}","topObjection":"most common objection a ${myCompany} prospect raises after evaluating ${d.name}","objectionHandle":"a confident specific response a ${myCompany} rep should give to that objection"}`;
 
   try{
-    const resp=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({competitor:d.name,myCompany:myCompany,mode:"battlecard"})});
-    const data=await resp.json();
-    if(data.error){throw new Error(data.error)}
-    const bcText=data.result||'';
-    if(!bcText){throw new Error('Empty response. Check your API keys.')}
-    const bc=JSON.parse(bcText.replace(/```json|```/g,'').trim());
+    const resp=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+getGroqKey()},body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:800,temperature:0.2,response_format:{type:"json_object"},messages:[{role:"system",content:"You are a senior product marketing analyst. Always respond with valid JSON only."},{role:"user",content:buildBattlecardPrompt(d.name,myCompany)}]})});
+    const bcData=await resp.json();
+    if(bcData.error){throw new Error(bcData.error.message||"Groq error")}
+    const bcText=bcData.choices?.[0]?.message?.content;
+    if(!bcText){throw new Error("Empty response from Groq")}
+    const bc=JSON.parse(bcText);
     const myInit=myCompany.charAt(0).toUpperCase();
     const coInit=d.name.charAt(0).toUpperCase();
     bcSection.innerHTML=`
@@ -611,6 +611,55 @@ function resetAll(){
   document.getElementById('errorBox').classList.remove('active');
   currentIntel=null;
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+
+function getGroqKey(){
+  const k=localStorage.getItem('groq_key');
+  if(!k){
+    const input=prompt('Enter your Groq API key to use Merak (stored locally in your browser only):');
+    if(input){localStorage.setItem('groq_key',input.trim());return input.trim();}
+    throw new Error('Groq API key is required. Get one free at console.groq.com');
+  }
+  return k;
+}
+
+function buildAnalysisPrompt(competitor){
+  return `You are a senior product marketing analyst. Generate a competitor intelligence brief for "${competitor}".
+Return a single JSON object with these exact keys:
+{
+  "name": "display name",
+  "tagline": "their tagline",
+  "founded": "year",
+  "headquarters": "city, country",
+  "employees": "e.g. 500-1000",
+  "funding": "e.g. $120M Series C",
+  "category": "product category",
+  "threatLevel": "High or Medium or Low",
+  "threatReason": "one sentence",
+  "gradient": "#hex1,#hex2",
+  "scores": {"productStrength":75,"marketPresence":80,"brandAwareness":70,"customerSatisfaction":72},
+  "icp": "2 sentence ICP",
+  "positioning": "2 sentence positioning",
+  "strengths": ["s1","s2","s3","s4"],
+  "weaknesses": ["w1","w2","w3"],
+  "keyMessages": ["m1","m2","m3"],
+  "g2": {"overallRating":4.3,"totalReviews":1200,"ratings":{"Ease of Use":4.4,"Quality of Support":4.1,"Ease of Setup":4.0,"Value for Money":4.2},"reviews":[{"reviewer":"Marketing Manager, Mid-Market","stars":5,"text":"positive review"},{"reviewer":"Ops Lead, SMB","stars":3,"text":"mixed review"},{"reviewer":"Director, Enterprise","stars":4,"text":"balanced review"}]},
+  "pricing": [{"tier":"Free","price":"$0","period":"forever","desc":"core features","featured":false},{"tier":"Pro","price":"$15","period":"per user/mo","desc":"advanced tools","featured":true},{"tier":"Business","price":"$30","period":"per user/mo","desc":"admin controls","featured":false},{"tier":"Enterprise","price":"Custom","period":"annual","desc":"SSO, security","featured":false}],
+  "positioningMap": {"xAxis":"Ease of Use","yAxis":"Feature Depth","competitors":[{"name":"${competitor}","x":65,"y":70,"isMain":true},{"name":"Competitor B","x":40,"y":60,"isMain":false},{"name":"Competitor C","x":75,"y":45,"isMain":false},{"name":"Competitor D","x":55,"y":85,"isMain":false}]},
+  "recentMoves": ["move 1","move 2","move 3"]
+}`;
+}
+
+function buildBattlecardPrompt(competitor, myCompany){
+  return `Generate a sales battlecard comparing "${myCompany}" vs "${competitor}".
+Return a single JSON object:
+{
+  "youWin": "2 sentences: when ${myCompany} wins deals against ${competitor}",
+  "theyWin": "2 sentences: when ${competitor} wins deals against ${myCompany}",
+  "topObjection": "most common objection a ${myCompany} prospect raises after seeing ${competitor}",
+  "objectionHandle": "how a ${myCompany} rep should confidently respond"
+}`;
 }
 </script>
 </body>
