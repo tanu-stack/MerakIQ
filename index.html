@@ -319,7 +319,7 @@ footer{margin-top:80px;border-top:1px solid var(--border);background:var(--surfa
   <hr class="footer-divider">
   <div class="footer-bottom">
     <div class="footer-bottom-text">Merak is an experimental portfolio project. The generated analysis may not always be fully accurate.</div>
-    <div class="footer-bottom-badge"><span></span>Live · </div>
+    <div class="footer-bottom-badge"><span></span>Live · Powered by Anthropic</div>
   </div>
 </footer>
 
@@ -334,7 +334,7 @@ const STEPS=[
 let currentIntel=null;
 
 function quickFill(n){document.getElementById('companyInput').value=n}
-document.getElementById('companyInput').addEventListener('keydown',e=>{if(e.key==='Enter')runMerakIQ()});
+document.getElementById('companyInput').addEventListener('keydown',e=>{if(e.key==='Enter')runAnalysis()});
 
 function showLoading(name){
   document.getElementById('loadingTitle').textContent=`Analyzing ${name}...`;
@@ -361,7 +361,7 @@ async function animateLoading(){
   }
 }
 
-async function runMerakIQ(){
+async function runAnalysis(){
   // Usage limit
   const LIMIT = 7;
   const used = parseInt(localStorage.getItem('MerakIQ_uses') || '0');
